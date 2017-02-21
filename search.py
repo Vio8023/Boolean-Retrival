@@ -6,16 +6,29 @@ from math import log
 from operator import add
 import io
 from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tokenize import RegexpTokenizer
 
 class Search:
     max_doc = 100
     allDocid = range(1, max_doc)
+    dicitonary_file = posting_file = query_file = None
+    pf = None
+    wordDictionay = {}
+    tokenizer = RegexpTokenizer(r'\w+')
+
+    def __init__(self, d, p, q):
+        self.dicitonary_file = d
+        self.posting_file = p
+        self.query_file = q
+        self.loadDictionary()
+        self.processBoolQueries()
+        self.pf.close()
 
     def processBoolQueries(self):
         priority = {'AND': 1, 'OR': 1, 'NOT': 2}
-        with io.open(query_file) as qf:
+        with io.open(self.query_file) as qf:
             for query in qf:
-                words = word_tokenize(query)
+                words = self.tokenizer.tokenize(query)
                 length = len(words)
 
                 stack = []
@@ -36,10 +49,10 @@ class Search:
 
                     else:
                         # to add: stemming & word processing
-                        stack.append(self.searchForTerm(words[i]))
+                        stack.append(self.getPostingList(words[i].lower()))
 
                 while not op:
-                    self.processOp(op.pop())
+                    stack = self.processOp(op.pop(), stack)
 
                 list_to_print = ' '.join(stack[0])
                 print list_to_print
@@ -68,13 +81,25 @@ class Search:
     def complement(self, list):
         return list(set(self.allDocid) - set(list))
 
-    def searchForTerm(self, str):
+    def loadDictionary(self):
+        df = open(self.dictionary_file, "r")
+        self.pf = open(self.postings_file, "r")
+        for line in df:
+            word, freq, pointer = line.strip().split(",")
+            self.wordDictionay[word] = [int(freq), int(pointer)]
+        df.close()
+        return
 
-        return [1]
-
-dicitonary_file = posting_file = query_file = None
+    def getPostingList(self, word):
+        # pf = open(self.postings_file, "r")
+        self.pf.seek(self.wordDictionay[word][1],0)
+        pl = self.pf.readline().strip()
+        print(word, self.wordDictionay[word][0], self.wordDictionay[word][1], pl)
+        pl = list(map(int, pl.split(" ")))
+        return pl
 
 # $ python search.py -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results
+d = p = q = None
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'b:t:o:')
@@ -82,16 +107,18 @@ except getopt.GetoptError, err:
     sys.exit(2)
 for o, a in opts:
     if o == '-d':
-        dicitonary_file = a
+        d = a
     elif o == '-p':
-        posting_file = a
+        p = a
     elif o == '-q':
-        query_file = a
+        q = a
     else:
         assert False, "unhandled option"
-if dicitonary_file == None or posting_file == None or query_file == None:
+if d == None or p == None or q == None:
     # usage()
     sys.exit(2)
+
+Search(d, p, q)
 
 # LM = build_LM(input_file_b)
 # test_LM(input_file_t, output_file, LM)

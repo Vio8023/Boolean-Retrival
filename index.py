@@ -11,9 +11,9 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
-TEST = True;
+TEST = True
 DEBUG = True
-directory_of_documents = dictionary_file = postings_file = None;
+directory_of_documents = dictionary_file = postings_file = None
 
 class PostingModel:
     posting_list = defaultdict(list)
