@@ -97,7 +97,6 @@ except getopt.GetoptError, err:
     print err.msg
     usage()
     sys.exit(2)
-print "hello"
 
 for o, a in opts:
     if o == '-i':
@@ -113,9 +112,9 @@ if directory_of_documents == None or dictionary_file == None or postings_file ==
     sys.exit(3)
 
 
-# pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
-# pm.buildIndex()
-# pm.saveFile()
+pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
+pm.buildIndex()
+pm.saveFile()
 
 # wd = pm.loadDictionary()
 # pprint.pprint(wd)
