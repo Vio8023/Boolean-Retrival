@@ -9,8 +9,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.tokenize import RegexpTokenizer
 
 class Search:
-    max_doc = 100
-    allDocid = range(1, max_doc)
+    allDocid = None
     dicitonary_file = posting_file = query_file = None
     pf = None
     wordDictionay = {}
@@ -84,6 +83,7 @@ class Search:
     def loadDictionary(self):
         df = open(self.dictionary_file, "r")
         self.pf = open(self.postings_file, "r")
+        self.allDocid = list(df.readline().strip().split(' '))
         for line in df:
             word, freq, pointer = line.strip().split(",")
             self.wordDictionay[word] = [int(freq), int(pointer)]

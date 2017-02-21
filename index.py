@@ -11,7 +11,8 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
-TEST = True
+
+TEST = False
 DEBUG = True
 directory_of_documents = dictionary_file = postings_file = None
 
@@ -27,10 +28,10 @@ class PostingModel:
 
 
     def buildIndex(self):
-        filenames = os.listdir(self.directory_of_documents)
+        self.filenames = os.listdir(self.directory_of_documents)
         if TEST:
-            filenames = filenames[:50]
-        for filename in filenames:
+            self.filenames = self.filenames[:500]
+        for filename in self.filenames:
             self._buildIndex(filename)
         if DEBUG:
             pprint.pprint(self.posting_list)
@@ -56,6 +57,7 @@ class PostingModel:
     def saveFile(self):
         df = open(self.dictionary_file, "w+")
         pf = open(self.postings_file, "w+")
+        df.write(" ".join(self.filenames)+"\n")
         for word in self.vocabularies:
             self.vocabularies[word][1] = pf.tell()
             pf.write(" ".join(list(map(str, self.posting_list[word])))+"\n")
@@ -66,31 +68,27 @@ class PostingModel:
         pf.close()
         df.close()
 
-    def loadDictionary(self):
-        df = open(self.dictionary_file, "r")
-        pf = open(self.postings_file, "r")
-        wordDictionay = {}
-        for line in df:
-            word, freq, pointer = line.strip().split(",")
-            wordDictionay[word] = [int(freq), int(pointer)]
-        df.close()
-        return wordDictionay
-
-    def getPostingList(self, word, wordDictionay):
-        pf = open(self.postings_file, "r")
-        pf.seek(wordDictionay[word][1],0)
-        pl = pf.readline().strip()
-        print(word, wordDictionay[word][0], wordDictionay[word][1], pl)
-        pl = list(map(int, pl.split(" ")))
-        return pl
-
-
+    # def loadDictionary(self):
+    #     df = open(self.dictionary_file, "r")
+    #     pf = open(self.postings_file, "r")
+    #     wordDictionay = {}
+    #     for line in df:
+    #         word, freq, pointer = line.strip().split(",")
+    #         wordDictionay[word] = [int(freq), int(pointer)]
+    #     df.close()
+    #     return wordDictionay
+    #
+    # def getPostingList(self, word, wordDictionay):
+    #     pf = open(self.postings_file, "r")
+    #     pf.seek(wordDictionay[word][1],0)
+    #     pl = pf.readline().strip()
+    #     print(word, wordDictionay[word][0], wordDictionay[word][1], pl)
+    #     pl = list(map(int, pl.split(" ")))
+    #     return pl
 
 def usage():
     print directory_of_documents, dictionary_file, postings_file
     print "usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file "
-
-
 
 
 try:
@@ -99,6 +97,7 @@ except getopt.GetoptError, err:
     print err.msg
     usage()
     sys.exit(2)
+print "hello"
 
 for o, a in opts:
     if o == '-i':
@@ -111,12 +110,13 @@ for o, a in opts:
         assert False, "unhandled option"
 if directory_of_documents == None or dictionary_file == None or postings_file == None:
     usage()
-    sys.exit(2)
+    sys.exit(3)
 
-pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
-pm.buildIndex()
-pm.saveFile()
 
-wd = pm.loadDictionary()
-pprint.pprint(wd)
-pprint.pprint(pm.getPostingList("years", wd))
+# pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
+# pm.buildIndex()
+# pm.saveFile()
+
+# wd = pm.loadDictionary()
+# pprint.pprint(wd)
+# pprint.pprint(pm.getPostingList("years", wd))
