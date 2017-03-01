@@ -12,7 +12,7 @@ from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
 
-TEST = False
+TEST = True
 DEBUG = True
 directory_of_documents = dictionary_file = postings_file = None
 
@@ -28,14 +28,19 @@ class PostingModel:
 
 
     def buildIndex(self):
+        print(os.listdir(self.directory_of_documents))
         self.filenames = os.listdir(self.directory_of_documents)
+
         if TEST:
-            self.filenames = self.filenames[:500]
+            self.filenames = self.filenames[:2000]
+        self.filenames = sorted(self.filenames, key=int)
         for filename in self.filenames:
             self._buildIndex(filename)
         if DEBUG:
             pprint.pprint(self.posting_list)
             pprint.pprint(self.vocabularies)
+
+        print(self.filenames)
 
     def _buildIndex(self, filename):
         tf = open(self.directory_of_documents + filename)
@@ -116,6 +121,3 @@ pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
 pm.buildIndex()
 pm.saveFile()
 
-# wd = pm.loadDictionary()
-# pprint.pprint(wd)
-# pprint.pprint(pm.getPostingList("years", wd))
