@@ -11,8 +11,8 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
-
-TEST = True
+STRIP_NUM = True
+TEST = False
 DEBUG = True
 directory_of_documents = dictionary_file = postings_file = None
 
@@ -46,7 +46,10 @@ class PostingModel:
         tf = open(self.directory_of_documents + filename)
         tokens = []
         for lines in tf:
-            tokens = tokens + self.tokenizer.tokenize(lines.lower())
+            if STRIP_NUM:
+                tokens = tokens + self.tokenizer.tokenize(lines.lower().translate(None, '0123456789'))
+            else:
+                tokens = tokens + self.tokenizer.tokenize(lines.lower())
         tokens = set(tokens)
 
         for token in tokens:
