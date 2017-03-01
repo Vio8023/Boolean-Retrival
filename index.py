@@ -31,7 +31,8 @@ class PostingModel:
 
 
     def buildIndex(self):
-        print(os.listdir(self.directory_of_documents))
+        if DEBUG:
+            print(os.listdir(self.directory_of_documents))
         self.filenames = os.listdir(self.directory_of_documents)
 
         if TEST:
@@ -44,7 +45,7 @@ class PostingModel:
             pprint.pprint(self.posting_list)
             pprint.pprint(self.vocabularies)
 
-        print(self.filenames)
+            print(self.filenames)
 
     def _buildIndex(self, filename):
         tf = open(self.directory_of_documents + filename)
