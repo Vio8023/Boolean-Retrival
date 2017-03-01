@@ -11,8 +11,9 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
+from nltk.stem.porter import PorterStemmer
 
-TEST = False
+TEST = True
 DEBUG = True
 directory_of_documents = dictionary_file = postings_file = None
 
@@ -30,7 +31,7 @@ class PostingModel:
     def buildIndex(self):
         self.filenames = os.listdir(self.directory_of_documents)
         if TEST:
-            self.filenames = self.filenames[:500]
+            self.filenames = self.filenames[:20]
         for filename in self.filenames:
             self._buildIndex(filename)
         if DEBUG:
@@ -42,7 +43,7 @@ class PostingModel:
         tokens = []
         for lines in tf:
             tokens = tokens + self.tokenizer.tokenize(lines.lower())
-        tokens = set(tokens)
+        tokens = set(PorterStemmer.stem(tokens))
 
         for token in tokens:
             self.posting_list[token].append(filename)

@@ -7,6 +7,7 @@ from operator import add
 import io
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.tokenize import RegexpTokenizer
+from nltk.stem.porter import PorterStemmer
 
 class Search:
     allDocid = None
@@ -52,7 +53,7 @@ class Search:
 
                     else:
                         # to add: stemming & word processing
-                        stack.append(self.getPostingList(words[i].lower()))
+                        stack.append(self.getPostingList(PorterStemmer.stem(words[i].lower())))
 
                 while len(op) > 0:
                     stack = self.processOp(op.pop(), stack)
