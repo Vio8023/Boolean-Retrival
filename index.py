@@ -13,8 +13,10 @@ from nltk.tokenize import RegexpTokenizer
 import pprint
 from nltk.stem.porter import PorterStemmer
 
-TEST = True
-DEBUG = True
+STRIP_NUM = False
+TEST = False
+DEBUG = False
+
 directory_of_documents = dictionary_file = postings_file = None
 
 class PostingModel:
@@ -29,20 +31,29 @@ class PostingModel:
 
 
     def buildIndex(self):
+        print(os.listdir(self.directory_of_documents))
         self.filenames = os.listdir(self.directory_of_documents)
+
         if TEST:
-            self.filenames = self.filenames[:20]
+            self.filenames = self.filenames[:2000]
+        self.filenames = sorted(self.filenames, key=int)
+
         for filename in self.filenames:
             self._buildIndex(filename)
         if DEBUG:
             pprint.pprint(self.posting_list)
             pprint.pprint(self.vocabularies)
 
+        print(self.filenames)
+
     def _buildIndex(self, filename):
         tf = open(self.directory_of_documents + filename)
         tokens = []
         for lines in tf:
-            tokens = tokens + self.tokenizer.tokenize(lines.lower())
+            if STRIP_NUM:
+                tokens = tokens + self.tokenizer.tokenize(lines.lower().translate(None, '0123456789'))
+            else:
+                tokens = tokens + self.tokenizer.tokenize(lines.lower())
         tokens = set(PorterStemmer.stem(tokens))
 
         for token in tokens:
@@ -117,6 +128,3 @@ pm = PostingModel(directory_of_documents, dictionary_file, postings_file )
 pm.buildIndex()
 pm.saveFile()
 
-# wd = pm.loadDictionary()
-# pprint.pprint(wd)
-# pprint.pprint(pm.getPostingList("years", wd))
