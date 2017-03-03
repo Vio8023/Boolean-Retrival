@@ -3,11 +3,11 @@ query terms to search. Do you think it is a good idea to remove these number ent
 Can you propose methods to normalize these numbers? How many percentage of reduction in disk storage do you observe after removing/normalizing
 these numbers?
 
-a. in general, it should generally be better to just ignore the numbers because it does not appear in queries frequently and we need
- to create an additional dictionary entry for every number, which is very costly
+a. in general, it should generally be better to just ignore the numbers. Numbers are normally not as useful as other words, since some types of number (like product serial number, calculation result, etc,) probably only appear once at a certain place and users won't query about most of them.
+But it also takes huge amount of space and may cause problem as indexing key since they can sometimes be arbitrarily long.
 
 b. a possible way to normalize number is to store a sorted string derived from the number taking all the unique digits from the number,
-for example store "7233357888" as "23578"
+for example store "7233357888" as "23578". Though this method will causes a lot "collision" and low precision, the query recall is still 100% and we can use certain post processing to extract result.
 
 c. If we store every number, the posting file size is 3.1MB, and if we exclude numbers, the posting file size is 2.8MB, which is 10% reduction.
 
@@ -15,12 +15,12 @@ c. If we store every number, the posting file size is 3.1MB, and if we exclude n
 a. since there are a only limited number of stop words with high frequency, by removing them we will get small reduction in dictionary entries,
 but much larger reduction in the posting list.
 
-b. By removing the stop words, we can no longer include stop words in our queries
+b. By removing the stop words, we can no longer search for stop words.
 
 3. The NLTK tokenizer may not correctly tokenize all terms. What do you observe from the resulting terms produced by sent_tokenize()
 and word_tokenize()? Can you propose rules to further refine these results?
 
-a. tokenizer wouldn't remove '\n' or other non-word symbols
+a. tokenizer wouldn't remove '\n' or special space character or other non-word symbols.
 
 b. to tackle this case, we have define our own version of tokenizer using regex: tokenizer = RegexpTokenizer(r'\w+')
 With this tokenizer, we are able to remove all other symbols other than words and numbers

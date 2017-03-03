@@ -11,7 +11,7 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
-from nltk.stem.porter import PorterStemmer
+from nltk import stem
 
 STRIP_NUM = False
 TEST = False
@@ -55,7 +55,8 @@ class PostingModel:
                 tokens = tokens + self.tokenizer.tokenize(lines.lower().translate(None, '0123456789'))
             else:
                 tokens = tokens + self.tokenizer.tokenize(lines.lower())
-        tokens = set(PorterStemmer.stem(tokens))
+        stemmer = stem.PorterStemmer()
+        tokens = set([stemmer.stem(token) for token in tokens])
 
         for token in tokens:
             self.posting_list[token].append(filename)
