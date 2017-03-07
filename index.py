@@ -11,9 +11,12 @@ from collections import defaultdict
 from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
+from nltk import stem
+
 STRIP_NUM = False
 TEST = False
 DEBUG = False
+
 directory_of_documents = dictionary_file = postings_file = None
 
 class PostingModel:
@@ -35,6 +38,7 @@ class PostingModel:
         if TEST:
             self.filenames = self.filenames[:2000]
         self.filenames = sorted(self.filenames, key=int)
+
         for filename in self.filenames:
             self._buildIndex(filename)
         if DEBUG:
@@ -51,7 +55,8 @@ class PostingModel:
                 tokens = tokens + self.tokenizer.tokenize(lines.lower().translate(None, '0123456789'))
             else:
                 tokens = tokens + self.tokenizer.tokenize(lines.lower())
-        tokens = set(tokens)
+        stemmer = stem.PorterStemmer()
+        tokens = set([stemmer.stem(token) for token in tokens])
 
         for token in tokens:
             self.posting_list[token].append(filename)
