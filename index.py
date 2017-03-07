@@ -12,10 +12,10 @@ from nltk import sent_tokenize
 from nltk.tokenize import RegexpTokenizer
 import pprint
 from nltk import stem
-
+from collections import Counter
 STRIP_NUM = False
 TEST = False
-DEBUG = False
+DEBUG = True
 
 directory_of_documents = dictionary_file = postings_file = None
 
@@ -56,10 +56,12 @@ class PostingModel:
             else:
                 tokens = tokens + self.tokenizer.tokenize(lines.lower())
         stemmer = stem.PorterStemmer()
-        tokens = set([stemmer.stem(token) for token in tokens])
+        # tokens = set([stemmer.stem(token) for token in tokens])
+        tokens = [stemmer.stem(token) for token in tokens]
+        tokensCnt = Counter(tokens)
 
-        for token in tokens:
-            self.posting_list[token].append(filename)
+        for token, freq in tokensCnt.items():
+            self.posting_list[token].append([filename, freq])
             if token not in self.vocabularies:
                 self.vocabularies[token] = [0, ""];
             self.vocabularies[token][0] += 1
@@ -72,9 +74,10 @@ class PostingModel:
         df = open(self.dictionary_file, "w+")
         pf = open(self.postings_file, "w+")
         df.write(" ".join(self.filenames)+"\n")
+        toString = lambda x:str(x[0])+','+str(x[1])
         for word in self.vocabularies:
             self.vocabularies[word][1] = pf.tell()
-            pf.write(" ".join(list(map(str, self.posting_list[word])))+"\n")
+            pf.write(" ".join(list(map(toString, self.posting_list[word])))+"\n")
             df.write("%s,%s,%s\n"%(word, str(self.vocabularies[word][0]),str(self.vocabularies[word][1])))
             if DEBUG:
                 print("Dict:"+"%s,%s,%s\n"%(word, str(self.vocabularies[word][0]),str(self.vocabularies[word][1])))
