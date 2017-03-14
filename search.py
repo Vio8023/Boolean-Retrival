@@ -59,11 +59,11 @@ class Search:
                     queryVec.append(idf * tf)
                 # normalize
                 queryVec = queryVec/np.linalg.norm(queryVec)
-                print "vector for query:"
-                print queryVec
+                if DEBUG:
+                    print queryVec
 
                 index = 0
-                for term in queryDic:
+                for term in queryDic.keys():
                     posting = self.getPostingList(term)
                     for entry in posting:
                         doc = entry[0]
