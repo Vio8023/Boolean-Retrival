@@ -157,7 +157,6 @@ class Search:
             if DEBUG:
                 print(word, self.wordDictionary[word][0], self.wordDictionary[word][1], pl)
 
-
             pl =  pl.split(" ")
             pl = [list(map(int, i.split(","))) for i in pl]
         else:
