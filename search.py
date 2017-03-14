@@ -1,5 +1,5 @@
 import re
-import nltk
+import math
 import sys
 import getopt
 from math import log
@@ -9,13 +9,15 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk import stem
 import pprint
-DEBUG = False
+import numpy as np
+DEBUG = True
 
 class Search:
     allDocid = None
+    docNum = 0
     dictionary_file = posting_file = query_file = output_file = None
     pf = of = None
-    wordDictionary = {}
+    wordDictionary = dict({})
     tokenizer = RegexpTokenizer(r'(\w+|\(|\))+')
 
     def __init__(self, d, p, q, o):
@@ -24,9 +26,61 @@ class Search:
         self.query_file = q
         self.output_file = o
         self.loadDictionary()
-        self.processBoolQueries()
+        self.processFreeTextQueries()
         self.pf.close()
         self.of.close()
+
+    def processFreeTextQueries(self):
+        with io.open(self.query_file) as qf:
+            for query in qf:
+                termDic = {}
+                queryDic = {}
+                words = self.tokenizer.tokenize(query.strip())
+                length = len(words)
+                # if DEBUG:
+                #     print words
+
+                for i in range(0, length):
+                    # stemming & word processing
+                    stemmer = stem.PorterStemmer()
+                    queryterm = stemmer.stem(words[i].lower())
+
+                    if queryterm not in queryDic:
+                        queryDic[queryterm] = 0
+                    queryDic[queryterm] += 1
+
+                queryVec = []
+                for term in queryDic.keys():
+                    tf = 1 + math.log(queryDic[term], 10)
+                    df = self.wordDictionary[queryterm][0]
+                    # if DEBUG:
+                    #     print queryterm + " " + str(df)
+                    idf = math.log(self.docNum/df, 10)
+                    queryVec.append(idf * tf)
+                # normalize
+                queryVec = queryVec/np.linalg.norm(queryVec)
+                print "vector for query:"
+                print queryVec
+
+                index = 0
+                for term in queryDic:
+                    posting = self.getPostingList(term)
+                    for entry in posting:
+                        doc = entry[0]
+                        # need to update this
+                        tf = 1 + math.log(entry[1], 10)
+                        if doc not in termDic:
+                            termDic[doc] = 0
+                        termDic[doc] += tf * queryVec[index]
+                    index += 1
+
+                sortedqueryDic = sorted(termDic, key=termDic.get, reverse=True)
+                if DEBUG:
+                    for k in sortedqueryDic[:10]:
+                        print k, termDic[k]
+                list_to_print = ' '.join(list(map(str, sortedqueryDic[:10]))) + "\n"
+                self.of.write(list_to_print)
+        return
 
     def processBoolQueries(self):
         priority = {'AND': 1, 'OR': 1, 'NOT': 2, '(': 0}
@@ -143,6 +197,7 @@ class Search:
         self.pf = open(self.posting_file, "r")
         self.of = open(self.output_file, "w+")
         self.allDocid = list(df.readline().strip().split(' '))
+        self.docNum = len(self.allDocid)
         for line in df:
             word, freq, pointer = line.strip().split(",")
             self.wordDictionary[word] = [int(freq), int(pointer)]
