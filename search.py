@@ -10,7 +10,7 @@ from nltk.tokenize import RegexpTokenizer
 from nltk import stem
 import pprint
 import numpy as np
-DEBUG = True
+DEBUG = False
 
 class Search:
     allDocid = None
@@ -52,7 +52,7 @@ class Search:
                 queryVec = []
                 for term in queryDic.keys():
                     tf = 1 + math.log(queryDic[term], 10)
-                    df = self.wordDictionary[queryterm][0]
+                    df = self.wordDictionary[term][0]
                     # if DEBUG:
                     #     print queryterm + " " + str(df)
                     idf = math.log(self.docNum/df, 10)
@@ -68,7 +68,8 @@ class Search:
                     for entry in posting:
                         doc = entry[0]
                         # need to update this
-                        tf = 1 + math.log(entry[1], 10)
+                        # tf = 1 + math.log(entry[1], 10)
+                        tf = entry[1]
                         if doc not in termDic:
                             termDic[doc] = 0
                         termDic[doc] += tf * queryVec[index]
@@ -212,9 +213,9 @@ class Search:
             if DEBUG:
                 print(word, self.wordDictionary[word][0], self.wordDictionary[word][1], pl)
 
-
             pl =  pl.split(" ")
-            pl = [list(map(int, i.split(","))) for i in pl]
+            pl = [i.split(",") for i in pl]
+            pl = map(lambda x: [int(x[0]), float(x[1])], pl)
         else:
             pl = []
         return pl

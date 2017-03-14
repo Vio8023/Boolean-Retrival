@@ -13,6 +13,7 @@ from nltk.tokenize import RegexpTokenizer
 import pprint
 from nltk import stem
 from collections import Counter
+import numpy as np
 STRIP_NUM = False
 TEST = False
 DEBUG = True
@@ -59,9 +60,12 @@ class PostingModel:
         # tokens = set([stemmer.stem(token) for token in tokens])
         tokens = [stemmer.stem(token) for token in tokens]
         tokensCnt = Counter(tokens)
+        tokensLog = {k:1+np.log10(v) for k,v in tokensCnt.items()}
 
-        for token, freq in tokensCnt.items():
-            self.posting_list[token].append([filename, freq])
+        norm = np.linalg.norm(tokensLog.values())
+        tokensLog = {k: v/norm for k, v in tokensLog.items()}
+        for token, df in tokensLog.items():
+            self.posting_list[token].append([filename, df])
             if token not in self.vocabularies:
                 self.vocabularies[token] = [0, ""];
             self.vocabularies[token][0] += 1
