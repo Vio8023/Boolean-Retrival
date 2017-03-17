@@ -1,26 +1,21 @@
-1. You will observe that a large portion of the terms in the dictionary are numbers. However, we normally do not use numbers as
-query terms to search. Do you think it is a good idea to remove these number entries from the dictionary and the postings lists?
-Can you propose methods to normalize these numbers? How many percentage of reduction in disk storage do you observe after removing/normalizing
-these numbers?
+1. In this assignment, we didn't ask you to support phrasal queries, which is a feature that is typically supported in web search engines. Describe how you would support phrasal search in conjunction with the VSM model. A sketch of the algorithm is sufficient. (For those of you who like a challenge, please go ahead and implement this feature in your submission but clearly demarcate it in your code and allow this feature to be turned on or off using the command line switch "-x" (where "-x" means to turn on the extended processing of phrasal queries). We will give a small bonus to submissions that achieve this functionality correctly).
+Since the nature of vector space representation is fundamentally lossy and there is no way for us to retrieve the order of terms in a given document, we will have to store additional positional information or bigrams to achieve phrasal search. To support phrasal search with vector space model, my proposal is as follows:
+In index building phrase, in addition to single word VSM, we also index bigram to support general phrasal query. To achieve phrasal query with bigram vector space model, we simply collect the documents that have nonzero weight for every bigram in query phrase and have relatively close weight for all those bigrams. This approach will still lead to some false positive, if we really care about the precision, we can do a post processing, namely, manually screen out the documents that do not contain this phraseIf documents containing query phrase.
 
-a. in general, it should generally be better to just ignore the numbers. Numbers are normally not as useful as other words, since some types of number (like product serial number, calculation result, etc,) probably only appear once at a certain place and users won't query about most of them.
-But it also takes huge amount of space and may cause problem as indexing key since they can sometimes be arbitrarily long.
+For phrasal search, firstly we simply do phrasal query with the entire query phrase and rank them according to their vector space score.
+If the documents obtained by the first step are not enough, we collect the document that contain partial query phrase and rank them. For example, for a given phrase “National University of Singapore”, we can have partial query phrases such as “National University” and “University of Singapore”.
+We keep decrease the length of partial query phrase until we have enough documents to return to our users.
 
-b. a possible way to normalize number is to store a sorted string derived from the number taking all the unique digits from the number,
-for example store "7233357888" as "23578". Though this method will causes a lot "collision" and low precision, the query recall is still 100% and we can use certain post processing to extract result.
+2. Describe how your search engine reacts to long documents and long queries as compared to short documents and queries.
+Is the normalization you use sufficient to address the problems (see Section 6.4.4 for a hint)?
+In your judgement, is the ltc.lnc scheme (n.b., not the ranking scheme you were asked to implement) sufficient for retrieving documents from the Reuters-21578 collection?
 
-c. If we store every number, the posting file size is 3.1MB, and if we exclude numbers, the posting file size is 2.8MB, which is 10% reduction.
+a. We implemented lnc.ltc ranking scheme, for longer documents, tf tends to be larger while the document length will also increase accordingly.
+For long documents with repetitive contents, the weight of terms remain more or less unchanged with different lengths; however, in long documents covering different topics, the weight of terms will likely decrease with increasing document length.
+For long queries, as length increases (number of unique words increase), the weight of each word decreases.
 
-2. What do you think will happen if we remove stop words from the dictionary and postings file? How does it affect the searching phase?
-a. since there are a only limited number of stop words with high frequency, by removing them we will get small reduction in dictionary entries,
-but much larger reduction in the posting list.
+b. ltc.lnc should be sufficient for document retrieval in Reuters dataset because this scheme also prefers document with rare but document-wise frequent term.
+However, this scheme will also bias against long document with many topics.
 
-b. By removing the stop words, we can no longer search for stop words.
-
-3. The NLTK tokenizer may not correctly tokenize all terms. What do you observe from the resulting terms produced by sent_tokenize()
-and word_tokenize()? Can you propose rules to further refine these results?
-
-a. tokenizer wouldn't remove '\n' or special space character or other non-word symbols.
-
-b. to tackle this case, we have define our own version of tokenizer using regex: tokenizer = RegexpTokenizer(r'\w+')
-With this tokenizer, we are able to remove all other symbols other than words and numbers
+3. Do you think zone or field parametric indices would be useful for practical search in the Reuters collection? Note: the Reuters collection does have metadata for each article but the quality of the metadata is not uniform, nor are the metadata classifications uniformly applied (some documents have it, some don't). Hint: for the next Homework #4, we will be using field metadata, so if you want to base Homework #4 on your Homework #3, you're welcomed to start support of this early (although no extra credit will be given if it's right).
+Yes, parametric indices would still be useful. Compare with documents from multiple resources, reuters collection is relatively more homogeneous and uniform in terms of parametric information. Even though not all metadata fields are applied to all articles, we could still rank the documents have corresponding value higher, and screen out documents have different value in that filed.
